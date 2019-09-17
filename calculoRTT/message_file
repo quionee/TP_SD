@@ -1,0 +1,319 @@
+A network socket is an internal endpoint for sending or receiving data within a node on a computer network. Concretely, it is a representation of this endpoint in networking software (protocol stack), such as an entry in a table (listing communication protocol, destination, status, etc.), and is a form of system resource.
+
+The term socket is analogous to physical female connectors, communication between two nodes through a channel being visualized as a cable with two male connectors plugging into sockets at each node. Similarly, the term port (another term for a female connector) is used for external endpoints at a node, and the term socket is also used for an internal endpoint of local inter-process communication (IPC) (not over a network). However, the analogy is strained, as network communication need not be one-to-one or have a dedicated communication channel.
+
+A process can refer to a socket using a socket descriptor, a type of handle. A process first requests that the protocol stack create a socket, and the stack returns a descriptor to the process so it can identify the socket. The process then passes the descriptor back to the protocol stack when it wishes to send or receive data using this socket.
+
+Unlike ports, sockets are specific to one node; they are local resources and cannot be referred to directly by other nodes. Further, sockets are not necessarily associated with a persistent connection (channel) for communication between two nodes, nor is there necessarily some single other endpoint. For example, a datagram socket can be used for connectionless communication, and a multicast socket can be used to send to multiple nodes. However, in practice for internet communication, sockets are generally used to connect to a specific endpoint and often with a persistent connection.
+
+In practice, socket usually refers to a socket in an Internet Protocol (IP) network (where a socket may be called an Internet socket), in particular for the Transmission Control Protocol (TCP), which is a protocol for one-to-one connections. In this context, sockets are assumed to be associated with a specific socket address, namely the IP address and a port number for the local node, and there is a corresponding socket address at the foreign node (other node), which itself has an associated socket, used by the foreign process. Associating a socket with a socket address is called binding.
+
+Note that while a local process can communicate with a foreign process by sending or receiving data to or from a foreign socket address, it does not have access to the foreign socket itself, nor can it use the foreign socket descriptor, as these are both internal to the foreign node. For example, in a connection between 10.20.30.40:4444 and 50.60.70.80:8888 (local IP address:local port, foreign IP address:foreign port), there will also be an associated socket at each end, corresponding to the internal representation of the connection by the protocol stack on that node. These are referred to locally by numerical socket descriptors, say 317 at one side and 922 at the other. A process on node 10.20.30.40 can request to communicate with node 50.60.70.80 on port 8888 (request that the protocol stack create a socket to communicate with that destination), and once it has created a socket and received a socket descriptor (317), it can communicate via this socket by using the descriptor (317). The protocol stack will then forward data to and from node 50.60.70.80 on port 8888. However, a process on node 10.20.30.40 cannot request to communicate based on the foreign socket descriptor, (e.g. "socket 922" or "socket 922 on node 50.60.70.80") as these are internal to the foreign node and are not usable by the protocol stack on node 10.20.30.40.
+
+A protocol stack, today usually provided by the operating system (rather than as a separate library, for instance), is a set of services that allow processes to communicate over a network using the protocols that the stack implements. The operating system forwards the payload of incoming IP packets to the corresponding application by extracting the socket address information from the IP and transport protocol headers and stripping the headers from the application data.
+
+The application programming interface (API) that programs use to communicate with the protocol stack, using network sockets, is called a socket API. Development of application programs that utilize this API is called socket programming or network programming. Internet socket APIs are usually based on the Berkeley sockets standard. In the Berkeley sockets standard, sockets are a form of file descriptor, due to the Unix philosophy that "everything is a file", and the analogies between sockets and files. Both have functions to read, write, open, and close. In practice the differences strain the analogy, and different interfaces (send and receive) are used on a socket. In inter-process communication, each end generally has its own socket.
+
+In the standard Internet protocols TCP and UDP, a socket address is the combination of an IP address and a port number, much like one end of a telephone connection is the combination of a phone number and a particular extension. Sockets need not have a source address, for example, for only sending data, but if a program binds a socket to a source address, the socket can be used to receive data sent to that address. Based on this address, Internet sockets deliver incoming data packets to the appropriate application process.
+
+The distinctions between a socket (internal representation), socket descriptor (abstract identifier), and socket address (public address) are subtle, and these are not always distinguished in everyday usage. Further, specific definitions of a socket differ between authors. In IETF Request for Comments, Internet Standards, in many textbooks, as well as in this article, the term socket refers to an entity that is uniquely identified by the socket number. In other textbooks,[1] the term socket refers to a local socket address, i.e. a "combination of an IP address and a port number". In the original definition of socket given in RFC 147, as it was related to the ARPA network in 1971, "the socket is specified as a 32 bit number with even sockets identifying receiving sockets and odd sockets identifying sending sockets." Today, however, socket communications are bidirectional.
+
+Within the operating system and the application that created a socket, a socket is referred to by a unique integer value called a socket descriptor.
+
+Several types of Internet socket are available:
+
+Datagram sockets, also known as connectionless sockets, which use User Datagram Protocol (UDP).
+Stream sockets, also known as connection-oriented sockets, which use Transmission Control Protocol (TCP), Stream Control Transmission Protocol (SCTP) or Datagram Congestion Control Protocol (DCCP).
+Raw sockets (or raw IP sockets), typically available in routers and other network equipment. Here the transport layer is bypassed, and the packet headers are made accessible to the application, and there is no port number in the address, just the IP address.
+
+A datagram socket is a type of network socket which provides a connectionless point for sending or receiving data packets.[3] Each packet sent or received on a datagram socket is individually addressed and routed. Order and reliability are not guaranteed with datagram sockets, so multiple packets sent from one machine or process to another may arrive in any order or might not arrive at all.
+
+The sending of UDP broadcasts on a network are always enabled on a datagram socket. In order to receive broadcast packets, a datagram socket should be bound to the wildcard address. Broadcast packets may also be received when a datagram socket is bound to a more specific address.
+
+A stream socket is a type of network socket which provides a connection-oriented, sequenced, and unique flow of data without record boundaries, with well-defined mechanisms for creating and destroying connections and for detecting errors.
+
+A stream socket transmits data reliably, in order, and with out-of-band capabilities.
+
+On the Internet, stream sockets are typically implemented on top of TCP so that applications can run across any networks using TCP/IP protocol. SCTP may also be used for stream sockets.
+
+A raw socket is a network socket that allows direct sending and receiving of IP packets without any protocol-specific transport layer formatting.
+
+With other types of sockets, the payload is automatically encapsulated according to the chosen transport layer protocol (e.g. TCP, UDP), and the socket user is unaware of the existence of protocol headers that are broadcast with the payload. When reading from a raw socket, the headers are usually included. When transmitting packets from a raw socket, the automatic addition of a header is optional.
+
+Raw sockets are used in security related applications like Nmap. One possible use case for raw sockets is the implementation of new transport-layer protocols in user space.[4] Raw sockets are typically available in network equipment, and used for routing protocols such as the Internet Group Management Protocol (IGMPv4) and Open Shortest Path First (OSPF), and in the Internet Control Message Protocol (ICMP) used, among other things, by the ping utility.[5]
+
+Most socket application programming interfaces (APIs), for example those based on Berkeley sockets, support raw sockets. Windows XP was released in 2001 with raw socket support implemented in the Winsock interface, but three years later, Microsoft limited Winsock's raw socket support because of security concerns.[6]
+
+Computer processes that provide application services are referred to as servers, and create sockets on start up that are in listening state. These sockets are waiting for initiatives from client programs.
+
+A TCP server may serve several clients concurrently, by creating a child process for each client and establishing a TCP connection between the child process and the client. Unique dedicated sockets are created for each connection. These are in established state when a socket-to-socket virtual connection or virtual circuit (VC), also known as a TCP session, is established with the remote socket, providing a duplex byte stream.
+
+A server may create several concurrently established TCP sockets with the same local port number and local IP address, each mapped to its own server-child process, serving its own client process. They are treated as different sockets by the operating system, since the remote socket address (the client IP address and/or port number) are different; i.e. since they have different socket pair tuples.
+
+A UDP socket cannot be in an established state, since UDP is connectionless. Therefore, netstat does not show the state of a UDP socket. A UDP server does not create new child processes for every concurrently served client, but the same process handles incoming data packets from all remote clients sequentially through the same socket. It implies that UDP sockets are not identified by the remote address, but only by the local address, although each message has an associated remote address.
+
+Communicating local and remote sockets are called socket pairs. Each socket pair is described by a unique 4-tuple consisting of source and destination IP addresses and port numbers, i.e. of local and remote socket addresses.[8][9] As seen in the discussion above, in the TCP case, each unique socket pair 4-tuple is assigned a socket number, while in the UDP case, each unique local socket address is assigned a socket number.
+
+The term socket dates to RFC 147 (1971), where it was used in ARPANET. Today most implementations of sockets are based on Berkeley sockets (1983), for the internet, such as Winsock (1991). Other API implementations exist, such as the STREAMS-based Transport Layer Interface (TLI).
+
+In 1983, Berkeley sockets, also known as the BSD socket API, originated with the 4.2BSD Unix operating system (released in 1983) as an API. Only in 1989, however, could UC Berkeley release versions of its operating system and networking library free from the licensing constraints of AT&T's copyright-protected Unix.[10]
+
+In 1987, the TLI was the networking application programming interface provided by AT&T UNIX System V Release 3 (SVR3).[11] and continued into Release 4 (SVR4).[12]
+
+Other early implementations were written for TOPS-20,[13] MVS,[13] VM,[13] IBM-DOS (PCIP).[13][14]
+
+The socket is primarily a concept used in the transport layer of the Internet model. Networking equipment such as routers and switches do not require implementations of the transport layer, as they operate on the link layer level (switches) or at the internet layer (routers). However, stateful network firewalls, network address translators, and proxy servers keep track of active socket pairs. Also in fair queuing, layer 3 switching and quality of service (QoS) support in routers, packet flows may be identified by extracting information about the socket pairs. Raw sockets are typically available in network equipment and are used for routing protocols such as IGRP and OSPF, and in Internet Control Message Protocol (ICMP).
+
+WebSocket is a computer communications protocol, providing full-duplex communication channels over a single TCP connection. The WebSocket protocol was standardized by the IETF as RFC 6455 in 2011, and the WebSocket API in Web IDL is being standardized by the W3C.
+
+WebSocket is distinct from HTTP. Both protocols are located at layer 7 in the OSI model and depend on TCP at layer 4. Although they are different, RFC 6455 states that WebSocket "is designed to work over HTTP ports 80 and 443 as well as to support HTTP proxies and intermediaries," thus making it compatible with the HTTP protocol. To achieve compatibility, the WebSocket handshake uses the HTTP Upgrade header[1] to change from the HTTP protocol to the WebSocket protocol.
+
+The WebSocket protocol enables interaction between a web browser (or other client application) and a web server with lower overhead than half-duplex alternatives such as HTTP polling, facilitating real-time data transfer from and to the server. This is made possible by providing a standardized way for the server to send content to the client without being first requested by the client, and allowing messages to be passed back and forth while keeping the connection open. In this way, a two-way ongoing conversation can take place between the client and the server. The communications are done over TCP port number 80 (or 443 in the case of TLS-encrypted connections), which is of benefit for those environments which block non-web Internet connections using a firewall. Similar two-way browser-server communications have been achieved in non-standardized ways using stopgap technologies such as Comet.
+
+Most browsers support the protocol, including Google Chrome, Microsoft Edge, Internet Explorer, Firefox, Safari and Opera.
+
+Overview
+Unlike HTTP, WebSocket provides full-duplex communication.[2][3] Additionally, WebSocket enables streams of messages on top of TCP. TCP alone deals with streams of bytes with no inherent concept of a message. Before WebSocket, port 80 full-duplex communication was attainable using Comet channels; however, Comet implementation is nontrivial, and due to the TCP handshake and HTTP header overhead, it is inefficient for small messages. The WebSocket protocol aims to solve these problems without compromising security assumptions of the web.
+
+The WebSocket protocol specification defines ws (WebSocket) and wss (WebSocket Secure) as two new uniform resource identifier (URI) schemes[4] that are used for unencrypted and encrypted connections, respectively. Apart from the scheme name and fragment (# is not supported), the rest of the URI components are defined to use URI generic syntax.[5]
+
+Using browser developer tools, developers can inspect the WebSocket handshake as well as the WebSocket frames.[6]
+
+History
+WebSocket was first referenced as TCPConnection in the HTML5 specification, as a placeholder for a TCP-based socket API.[7] In June 2008, a series of discussions were led by Michael Carter that resulted in the first version of the protocol known as WebSocket.[8]
+
+The name "WebSocket" was coined by Ian Hickson and Michael Carter shortly thereafter through collaboration on the #whatwg IRC chat room,[9] and subsequently authored for inclusion in the HTML5 specification by Ian Hickson, and announced on the cometdaily blog by Michael Carter.[10] In December 2009, Google Chrome 4 was the first browser to ship full support for the standard, with WebSocket enabled by default.[11] Development of the WebSocket protocol was subsequently moved from the W3C and WHATWG group to the IETF in February 2010, and authored for two revisions under Ian Hickson.[12]
+
+After the protocol was shipped and enabled by default in multiple browsers, the RFC was finalized under Ian Fette in December 2011.[13]
+
+Browser implementation
+A secure version of the WebSocket protocol is implemented in Firefox 6,[14] Safari 6, Google Chrome 14,[15] Opera 12.10 and Internet Explorer 10.[16] A detailed protocol test suite report[17] lists the conformance of those browsers to specific protocol aspects.
+
+An older, less secure version of the protocol was implemented in Opera 11 and Safari 5, as well as the mobile version of Safari in iOS 4.2.[18] The BlackBerry Browser in OS7 implements WebSockets.[19] Because of vulnerabilities, it was disabled in Firefox 4 and 5,[20] and Opera 11.[21]
+
+The handshake starts with an HTTP request/response, allowing servers to handle HTTP connections as well as WebSocket connections on the same port. Once the connection is established, communication switches to a bidirectional binary protocol which does not conform to the HTTP protocol.
+
+In addition to Upgrade headers, the client sends a Sec-WebSocket-Key header containing base64-encoded random bytes, and the server replies with a hash of the key in the Sec-WebSocket-Accept header. This is intended to prevent a caching proxy from re-sending a previous WebSocket conversation,[31] and does not provide any authentication, privacy, or integrity. The hashing function appends the fixed string 258EAFA5-E914-47DA-95CA-C5AB0DC85B11 (a GUID) to the value from Sec-WebSocket-Key header (which is not decoded from base64), applies the SHA-1 hashing function, and encodes the result using base64.[32]
+
+Once the connection is established, the client and server can send WebSocket data or text frames back and forth in full-duplex mode. The data is minimally framed, with a small header followed by payload.[33] WebSocket transmissions are described as "messages", where a single message can optionally be split across several data frames. This can allow for sending of messages where initial data is available but the complete length of the message is unknown (it sends one data frame after another until the end is reached and marked with the FIN bit). With extensions to the protocol, this can also be used for multiplexing several streams simultaneously (for instance to avoid monopolizing use of a socket for a single large payload).[34]
+
+It is important (from a security perspective) to validate the "Origin" header during the connection establishment process on the server side (against the expected origins) to avoid Cross-Site WebSocket Hijacking attacks, which might be possible when the connection is authenticated with Cookies or HTTP authentication. It is better to use tokens or similar protection mechanisms to authenticate the WebSocket connection when sensitive (private) data is being transferred over the WebSocket.[35]
+
+Proxy traversal
+WebSocket protocol client implementations try to detect if the user agent is configured to use a proxy when connecting to destination host and port and, if it is, uses HTTP CONNECT method to set up a persistent tunnel.
+
+While the WebSocket protocol itself is unaware of proxy servers and firewalls, it features an HTTP-compatible handshake thus allowing HTTP servers to share their default HTTP and HTTPS ports (80 and 443) with a WebSocket gateway or server. The WebSocket protocol defines a ws:// and wss:// prefix to indicate a WebSocket and a WebSocket Secure connection, respectively. Both schemes use an HTTP upgrade mechanism to upgrade to the WebSocket protocol. Some proxy servers are transparent and work fine with WebSocket; others will prevent WebSocket from working correctly, causing the connection to fail. In some cases, additional proxy server configuration may be required, and certain proxy servers may need to be upgraded to support WebSocket.
+
+If unencrypted WebSocket traffic flows through an explicit or a transparent proxy server without WebSockets support, the connection will likely fail.[36]
+
+If an encrypted WebSocket connection is used, then the use of Transport Layer Security (TLS) in the WebSocket Secure connection ensures that an HTTP CONNECT command is issued when the browser is configured to use an explicit proxy server. This sets up a tunnel, which provides low-level end-to-end TCP communication through the HTTP proxy, between the WebSocket Secure client and the WebSocket server. In the case of transparent proxy servers, the browser is unaware of the proxy server, so no HTTP CONNECT is sent. However, since the wire traffic is encrypted, intermediate transparent proxy servers may simply allow the encrypted traffic through, so there is a much better chance that the WebSocket connection will succeed if WebSocket Secure is used. Using encryption is not free of resource cost, but often provides the highest success rate since it would be travelling through a secure tunnel.
+
+A mid-2010 draft (version hixie-76) broke compatibility with reverse proxies and gateways by including eight bytes of key data after the headers, but not advertising that data in a Content-Length: 8 header.[37] This data was not forwarded by all intermediates, which could lead to protocol failure. More recent drafts (e.g., hybi-09[38]) put the key data in a Sec-WebSocket-Key header, solving this problem.
+
+A network socket is an internal endpoint for sending or receiving data within a node on a computer network. Concretely, it is a representation of this endpoint in networking software (protocol stack), such as an entry in a table (listing communication protocol, destination, status, etc.), and is a form of system resource.
+
+The term socket is analogous to physical female connectors, communication between two nodes through a channel being visualized as a cable with two male connectors plugging into sockets at each node. Similarly, the term port (another term for a female connector) is used for external endpoints at a node, and the term socket is also used for an internal endpoint of local inter-process communication (IPC) (not over a network). However, the analogy is strained, as network communication need not be one-to-one or have a dedicated communication channel.
+
+A process can refer to a socket using a socket descriptor, a type of handle. A process first requests that the protocol stack create a socket, and the stack returns a descriptor to the process so it can identify the socket. The process then passes the descriptor back to the protocol stack when it wishes to send or receive data using this socket.
+
+Unlike ports, sockets are specific to one node; they are local resources and cannot be referred to directly by other nodes. Further, sockets are not necessarily associated with a persistent connection (channel) for communication between two nodes, nor is there necessarily some single other endpoint. For example, a datagram socket can be used for connectionless communication, and a multicast socket can be used to send to multiple nodes. However, in practice for internet communication, sockets are generally used to connect to a specific endpoint and often with a persistent connection.
+
+In practice, socket usually refers to a socket in an Internet Protocol (IP) network (where a socket may be called an Internet socket), in particular for the Transmission Control Protocol (TCP), which is a protocol for one-to-one connections. In this context, sockets are assumed to be associated with a specific socket address, namely the IP address and a port number for the local node, and there is a corresponding socket address at the foreign node (other node), which itself has an associated socket, used by the foreign process. Associating a socket with a socket address is called binding.
+
+Note that while a local process can communicate with a foreign process by sending or receiving data to or from a foreign socket address, it does not have access to the foreign socket itself, nor can it use the foreign socket descriptor, as these are both internal to the foreign node. For example, in a connection between 10.20.30.40:4444 and 50.60.70.80:8888 (local IP address:local port, foreign IP address:foreign port), there will also be an associated socket at each end, corresponding to the internal representation of the connection by the protocol stack on that node. These are referred to locally by numerical socket descriptors, say 317 at one side and 922 at the other. A process on node 10.20.30.40 can request to communicate with node 50.60.70.80 on port 8888 (request that the protocol stack create a socket to communicate with that destination), and once it has created a socket and received a socket descriptor (317), it can communicate via this socket by using the descriptor (317). The protocol stack will then forward data to and from node 50.60.70.80 on port 8888. However, a process on node 10.20.30.40 cannot request to communicate based on the foreign socket descriptor, (e.g. "socket 922" or "socket 922 on node 50.60.70.80") as these are internal to the foreign node and are not usable by the protocol stack on node 10.20.30.40.
+
+A protocol stack, today usually provided by the operating system (rather than as a separate library, for instance), is a set of services that allow processes to communicate over a network using the protocols that the stack implements. The operating system forwards the payload of incoming IP packets to the corresponding application by extracting the socket address information from the IP and transport protocol headers and stripping the headers from the application data.
+
+The application programming interface (API) that programs use to communicate with the protocol stack, using network sockets, is called a socket API. Development of application programs that utilize this API is called socket programming or network programming. Internet socket APIs are usually based on the Berkeley sockets standard. In the Berkeley sockets standard, sockets are a form of file descriptor, due to the Unix philosophy that "everything is a file", and the analogies between sockets and files. Both have functions to read, write, open, and close. In practice the differences strain the analogy, and different interfaces (send and receive) are used on a socket. In inter-process communication, each end generally has its own socket.
+
+In the standard Internet protocols TCP and UDP, a socket address is the combination of an IP address and a port number, much like one end of a telephone connection is the combination of a phone number and a particular extension. Sockets need not have a source address, for example, for only sending data, but if a program binds a socket to a source address, the socket can be used to receive data sent to that address. Based on this address, Internet sockets deliver incoming data packets to the appropriate application process.
+
+The distinctions between a socket (internal representation), socket descriptor (abstract identifier), and socket address (public address) are subtle, and these are not always distinguished in everyday usage. Further, specific definitions of a socket differ between authors. In IETF Request for Comments, Internet Standards, in many textbooks, as well as in this article, the term socket refers to an entity that is uniquely identified by the socket number. In other textbooks,[1] the term socket refers to a local socket address, i.e. a "combination of an IP address and a port number". In the original definition of socket given in RFC 147, as it was related to the ARPA network in 1971, "the socket is specified as a 32 bit number with even sockets identifying receiving sockets and odd sockets identifying sending sockets." Today, however, socket communications are bidirectional.
+
+Within the operating system and the application that created a socket, a socket is referred to by a unique integer value called a socket descriptor.
+
+Several types of Internet socket are available:
+
+Datagram sockets, also known as connectionless sockets, which use User Datagram Protocol (UDP).
+Stream sockets, also known as connection-oriented sockets, which use Transmission Control Protocol (TCP), Stream Control Transmission Protocol (SCTP) or Datagram Congestion Control Protocol (DCCP).
+Raw sockets (or raw IP sockets), typically available in routers and other network equipment. Here the transport layer is bypassed, and the packet headers are made accessible to the application, and there is no port number in the address, just the IP address.
+
+A datagram socket is a type of network socket which provides a connectionless point for sending or receiving data packets.[3] Each packet sent or received on a datagram socket is individually addressed and routed. Order and reliability are not guaranteed with datagram sockets, so multiple packets sent from one machine or process to another may arrive in any order or might not arrive at all.
+
+The sending of UDP broadcasts on a network are always enabled on a datagram socket. In order to receive broadcast packets, a datagram socket should be bound to the wildcard address. Broadcast packets may also be received when a datagram socket is bound to a more specific address.
+
+A stream socket is a type of network socket which provides a connection-oriented, sequenced, and unique flow of data without record boundaries, with well-defined mechanisms for creating and destroying connections and for detecting errors.
+
+A stream socket transmits data reliably, in order, and with out-of-band capabilities.
+
+On the Internet, stream sockets are typically implemented on top of TCP so that applications can run across any networks using TCP/IP protocol. SCTP may also be used for stream sockets.
+
+A raw socket is a network socket that allows direct sending and receiving of IP packets without any protocol-specific transport layer formatting.
+
+With other types of sockets, the payload is automatically encapsulated according to the chosen transport layer protocol (e.g. TCP, UDP), and the socket user is unaware of the existence of protocol headers that are broadcast with the payload. When reading from a raw socket, the headers are usually included. When transmitting packets from a raw socket, the automatic addition of a header is optional.
+
+Raw sockets are used in security related applications like Nmap. One possible use case for raw sockets is the implementation of new transport-layer protocols in user space.[4] Raw sockets are typically available in network equipment, and used for routing protocols such as the Internet Group Management Protocol (IGMPv4) and Open Shortest Path First (OSPF), and in the Internet Control Message Protocol (ICMP) used, among other things, by the ping utility.[5]
+
+Most socket application programming interfaces (APIs), for example those based on Berkeley sockets, support raw sockets. Windows XP was released in 2001 with raw socket support implemented in the Winsock interface, but three years later, Microsoft limited Winsock's raw socket support because of security concerns.[6]
+
+Computer processes that provide application services are referred to as servers, and create sockets on start up that are in listening state. These sockets are waiting for initiatives from client programs.
+
+A TCP server may serve several clients concurrently, by creating a child process for each client and establishing a TCP connection between the child process and the client. Unique dedicated sockets are created for each connection. These are in established state when a socket-to-socket virtual connection or virtual circuit (VC), also known as a TCP session, is established with the remote socket, providing a duplex byte stream.
+
+A server may create several concurrently established TCP sockets with the same local port number and local IP address, each mapped to its own server-child process, serving its own client process. They are treated as different sockets by the operating system, since the remote socket address (the client IP address and/or port number) are different; i.e. since they have different socket pair tuples.
+
+A UDP socket cannot be in an established state, since UDP is connectionless. Therefore, netstat does not show the state of a UDP socket. A UDP server does not create new child processes for every concurrently served client, but the same process handles incoming data packets from all remote clients sequentially through the same socket. It implies that UDP sockets are not identified by the remote address, but only by the local address, although each message has an associated remote address.
+
+Communicating local and remote sockets are called socket pairs. Each socket pair is described by a unique 4-tuple consisting of source and destination IP addresses and port numbers, i.e. of local and remote socket addresses.[8][9] As seen in the discussion above, in the TCP case, each unique socket pair 4-tuple is assigned a socket number, while in the UDP case, each unique local socket address is assigned a socket number.
+
+The term socket dates to RFC 147 (1971), where it was used in ARPANET. Today most implementations of sockets are based on Berkeley sockets (1983), for the internet, such as Winsock (1991). Other API implementations exist, such as the STREAMS-based Transport Layer Interface (TLI).
+
+In 1983, Berkeley sockets, also known as the BSD socket API, originated with the 4.2BSD Unix operating system (released in 1983) as an API. Only in 1989, however, could UC Berkeley release versions of its operating system and networking library free from the licensing constraints of AT&T's copyright-protected Unix.[10]
+
+In 1987, the TLI was the networking application programming interface provided by AT&T UNIX System V Release 3 (SVR3).[11] and continued into Release 4 (SVR4).[12]
+
+Other early implementations were written for TOPS-20,[13] MVS,[13] VM,[13] IBM-DOS (PCIP).[13][14]
+
+The socket is primarily a concept used in the transport layer of the Internet model. Networking equipment such as routers and switches do not require implementations of the transport layer, as they operate on the link layer level (switches) or at the internet layer (routers). However, stateful network firewalls, network address translators, and proxy servers keep track of active socket pairs. Also in fair queuing, layer 3 switching and quality of service (QoS) support in routers, packet flows may be identified by extracting information about the socket pairs. Raw sockets are typically available in network equipment and are used for routing protocols such as IGRP and OSPF, and in Internet Control Message Protocol (ICMP).
+
+WebSocket is a computer communications protocol, providing full-duplex communication channels over a single TCP connection. The WebSocket protocol was standardized by the IETF as RFC 6455 in 2011, and the WebSocket API in Web IDL is being standardized by the W3C.
+
+WebSocket is distinct from HTTP. Both protocols are located at layer 7 in the OSI model and depend on TCP at layer 4. Although they are different, RFC 6455 states that WebSocket "is designed to work over HTTP ports 80 and 443 as well as to support HTTP proxies and intermediaries," thus making it compatible with the HTTP protocol. To achieve compatibility, the WebSocket handshake uses the HTTP Upgrade header[1] to change from the HTTP protocol to the WebSocket protocol.
+
+The WebSocket protocol enables interaction between a web browser (or other client application) and a web server with lower overhead than half-duplex alternatives such as HTTP polling, facilitating real-time data transfer from and to the server. This is made possible by providing a standardized way for the server to send content to the client without being first requested by the client, and allowing messages to be passed back and forth while keeping the connection open. In this way, a two-way ongoing conversation can take place between the client and the server. The communications are done over TCP port number 80 (or 443 in the case of TLS-encrypted connections), which is of benefit for those environments which block non-web Internet connections using a firewall. Similar two-way browser-server communications have been achieved in non-standardized ways using stopgap technologies such as Comet.
+
+Most browsers support the protocol, including Google Chrome, Microsoft Edge, Internet Explorer, Firefox, Safari and Opera.
+
+Overview
+Unlike HTTP, WebSocket provides full-duplex communication.[2][3] Additionally, WebSocket enables streams of messages on top of TCP. TCP alone deals with streams of bytes with no inherent concept of a message. Before WebSocket, port 80 full-duplex communication was attainable using Comet channels; however, Comet implementation is nontrivial, and due to the TCP handshake and HTTP header overhead, it is inefficient for small messages. The WebSocket protocol aims to solve these problems without compromising security assumptions of the web.
+
+The WebSocket protocol specification defines ws (WebSocket) and wss (WebSocket Secure) as two new uniform resource identifier (URI) schemes[4] that are used for unencrypted and encrypted connections, respectively. Apart from the scheme name and fragment (# is not supported), the rest of the URI components are defined to use URI generic syntax.[5]
+
+Using browser developer tools, developers can inspect the WebSocket handshake as well as the WebSocket frames.[6]
+
+History
+WebSocket was first referenced as TCPConnection in the HTML5 specification, as a placeholder for a TCP-based socket API.[7] In June 2008, a series of discussions were led by Michael Carter that resulted in the first version of the protocol known as WebSocket.[8]
+
+The name "WebSocket" was coined by Ian Hickson and Michael Carter shortly thereafter through collaboration on the #whatwg IRC chat room,[9] and subsequently authored for inclusion in the HTML5 specification by Ian Hickson, and announced on the cometdaily blog by Michael Carter.[10] In December 2009, Google Chrome 4 was the first browser to ship full support for the standard, with WebSocket enabled by default.[11] Development of the WebSocket protocol was subsequently moved from the W3C and WHATWG group to the IETF in February 2010, and authored for two revisions under Ian Hickson.[12]
+
+After the protocol was shipped and enabled by default in multiple browsers, the RFC was finalized under Ian Fette in December 2011.[13]
+
+Browser implementation
+A secure version of the WebSocket protocol is implemented in Firefox 6,[14] Safari 6, Google Chrome 14,[15] Opera 12.10 and Internet Explorer 10.[16] A detailed protocol test suite report[17] lists the conformance of those browsers to specific protocol aspects.
+
+An older, less secure version of the protocol was implemented in Opera 11 and Safari 5, as well as the mobile version of Safari in iOS 4.2.[18] The BlackBerry Browser in OS7 implements WebSockets.[19] Because of vulnerabilities, it was disabled in Firefox 4 and 5,[20] and Opera 11.[21]
+
+The handshake starts with an HTTP request/response, allowing servers to handle HTTP connections as well as WebSocket connections on the same port. Once the connection is established, communication switches to a bidirectional binary protocol which does not conform to the HTTP protocol.
+
+In addition to Upgrade headers, the client sends a Sec-WebSocket-Key header containing base64-encoded random bytes, and the server replies with a hash of the key in the Sec-WebSocket-Accept header. This is intended to prevent a caching proxy from re-sending a previous WebSocket conversation,[31] and does not provide any authentication, privacy, or integrity. The hashing function appends the fixed string 258EAFA5-E914-47DA-95CA-C5AB0DC85B11 (a GUID) to the value from Sec-WebSocket-Key header (which is not decoded from base64), applies the SHA-1 hashing function, and encodes the result using base64.[32]
+
+Once the connection is established, the client and server can send WebSocket data or text frames back and forth in full-duplex mode. The data is minimally framed, with a small header followed by payload.[33] WebSocket transmissions are described as "messages", where a single message can optionally be split across several data frames. This can allow for sending of messages where initial data is available but the complete length of the message is unknown (it sends one data frame after another until the end is reached and marked with the FIN bit). With extensions to the protocol, this can also be used for multiplexing several streams simultaneously (for instance to avoid monopolizing use of a socket for a single large payload).[34]
+
+It is important (from a security perspective) to validate the "Origin" header during the connection establishment process on the server side (against the expected origins) to avoid Cross-Site WebSocket Hijacking attacks, which might be possible when the connection is authenticated with Cookies or HTTP authentication. It is better to use tokens or similar protection mechanisms to authenticate the WebSocket connection when sensitive (private) data is being transferred over the WebSocket.[35]
+
+Proxy traversal
+WebSocket protocol client implementations try to detect if the user agent is configured to use a proxy when connecting to destination host and port and, if it is, uses HTTP CONNECT method to set up a persistent tunnel.
+
+While the WebSocket protocol itself is unaware of proxy servers and firewalls, it features an HTTP-compatible handshake thus allowing HTTP servers to share their default HTTP and HTTPS ports (80 and 443) with a WebSocket gateway or server. The WebSocket protocol defines a ws:// and wss:// prefix to indicate a WebSocket and a WebSocket Secure connection, respectively. Both schemes use an HTTP upgrade mechanism to upgrade to the WebSocket protocol. Some proxy servers are transparent and work fine with WebSocket; others will prevent WebSocket from working correctly, causing the connection to fail. In some cases, additional proxy server configuration may be required, and certain proxy servers may need to be upgraded to support WebSocket.
+
+If unencrypted WebSocket traffic flows through an explicit or a transparent proxy server without WebSockets support, the connection will likely fail.[36]
+
+If an encrypted WebSocket connection is used, then the use of Transport Layer Security (TLS) in the WebSocket Secure connection ensures that an HTTP CONNECT command is issued when the browser is configured to use an explicit proxy server. This sets up a tunnel, which provides low-level end-to-end TCP communication through the HTTP proxy, between the WebSocket Secure client and the WebSocket server. In the case of transparent proxy servers, the browser is unaware of the proxy server, so no HTTP CONNECT is sent. However, since the wire traffic is encrypted, intermediate transparent proxy servers may simply allow the encrypted traffic through, so there is a much better chance that the WebSocket connection will succeed if WebSocket Secure is used. Using encryption is not free of resource cost, but often provides the highest success rate since it would be travelling through a secure tunnel.
+
+A mid-2010 draft (version hixie-76) broke compatibility with reverse proxies and gateways by including eight bytes of key data after the headers, but not advertising that data in a Content-Length: 8 header.[37] This data was not forwarded by all intermediates, which could lead to protocol failure. More recent drafts (e.g., hybi-09[38]) put the key data in a Sec-WebSocket-Key header, solving this problem.
+
+A network socket is an internal endpoint for sending or receiving data within a node on a computer network. Concretely, it is a representation of this endpoint in networking software (protocol stack), such as an entry in a table (listing communication protocol, destination, status, etc.), and is a form of system resource.
+
+The term socket is analogous to physical female connectors, communication between two nodes through a channel being visualized as a cable with two male connectors plugging into sockets at each node. Similarly, the term port (another term for a female connector) is used for external endpoints at a node, and the term socket is also used for an internal endpoint of local inter-process communication (IPC) (not over a network). However, the analogy is strained, as network communication need not be one-to-one or have a dedicated communication channel.
+
+A process can refer to a socket using a socket descriptor, a type of handle. A process first requests that the protocol stack create a socket, and the stack returns a descriptor to the process so it can identify the socket. The process then passes the descriptor back to the protocol stack when it wishes to send or receive data using this socket.
+
+Unlike ports, sockets are specific to one node; they are local resources and cannot be referred to directly by other nodes. Further, sockets are not necessarily associated with a persistent connection (channel) for communication between two nodes, nor is there necessarily some single other endpoint. For example, a datagram socket can be used for connectionless communication, and a multicast socket can be used to send to multiple nodes. However, in practice for internet communication, sockets are generally used to connect to a specific endpoint and often with a persistent connection.
+
+In practice, socket usually refers to a socket in an Internet Protocol (IP) network (where a socket may be called an Internet socket), in particular for the Transmission Control Protocol (TCP), which is a protocol for one-to-one connections. In this context, sockets are assumed to be associated with a specific socket address, namely the IP address and a port number for the local node, and there is a corresponding socket address at the foreign node (other node), which itself has an associated socket, used by the foreign process. Associating a socket with a socket address is called binding.
+
+Note that while a local process can communicate with a foreign process by sending or receiving data to or from a foreign socket address, it does not have access to the foreign socket itself, nor can it use the foreign socket descriptor, as these are both internal to the foreign node. For example, in a connection between 10.20.30.40:4444 and 50.60.70.80:8888 (local IP address:local port, foreign IP address:foreign port), there will also be an associated socket at each end, corresponding to the internal representation of the connection by the protocol stack on that node. These are referred to locally by numerical socket descriptors, say 317 at one side and 922 at the other. A process on node 10.20.30.40 can request to communicate with node 50.60.70.80 on port 8888 (request that the protocol stack create a socket to communicate with that destination), and once it has created a socket and received a socket descriptor (317), it can communicate via this socket by using the descriptor (317). The protocol stack will then forward data to and from node 50.60.70.80 on port 8888. However, a process on node 10.20.30.40 cannot request to communicate based on the foreign socket descriptor, (e.g. "socket 922" or "socket 922 on node 50.60.70.80") as these are internal to the foreign node and are not usable by the protocol stack on node 10.20.30.40.
+
+A protocol stack, today usually provided by the operating system (rather than as a separate library, for instance), is a set of services that allow processes to communicate over a network using the protocols that the stack implements. The operating system forwards the payload of incoming IP packets to the corresponding application by extracting the socket address information from the IP and transport protocol headers and stripping the headers from the application data.
+
+The application programming interface (API) that programs use to communicate with the protocol stack, using network sockets, is called a socket API. Development of application programs that utilize this API is called socket programming or network programming. Internet socket APIs are usually based on the Berkeley sockets standard. In the Berkeley sockets standard, sockets are a form of file descriptor, due to the Unix philosophy that "everything is a file", and the analogies between sockets and files. Both have functions to read, write, open, and close. In practice the differences strain the analogy, and different interfaces (send and receive) are used on a socket. In inter-process communication, each end generally has its own socket.
+
+In the standard Internet protocols TCP and UDP, a socket address is the combination of an IP address and a port number, much like one end of a telephone connection is the combination of a phone number and a particular extension. Sockets need not have a source address, for example, for only sending data, but if a program binds a socket to a source address, the socket can be used to receive data sent to that address. Based on this address, Internet sockets deliver incoming data packets to the appropriate application process.
+
+The distinctions between a socket (internal representation), socket descriptor (abstract identifier), and socket address (public address) are subtle, and these are not always distinguished in everyday usage. Further, specific definitions of a socket differ between authors. In IETF Request for Comments, Internet Standards, in many textbooks, as well as in this article, the term socket refers to an entity that is uniquely identified by the socket number. In other textbooks,[1] the term socket refers to a local socket address, i.e. a "combination of an IP address and a port number". In the original definition of socket given in RFC 147, as it was related to the ARPA network in 1971, "the socket is specified as a 32 bit number with even sockets identifying receiving sockets and odd sockets identifying sending sockets." Today, however, socket communications are bidirectional.
+
+Within the operating system and the application that created a socket, a socket is referred to by a unique integer value called a socket descriptor.
+
+Several types of Internet socket are available:
+
+Datagram sockets, also known as connectionless sockets, which use User Datagram Protocol (UDP).
+Stream sockets, also known as connection-oriented sockets, which use Transmission Control Protocol (TCP), Stream Control Transmission Protocol (SCTP) or Datagram Congestion Control Protocol (DCCP).
+Raw sockets (or raw IP sockets), typically available in routers and other network equipment. Here the transport layer is bypassed, and the packet headers are made accessible to the application, and there is no port number in the address, just the IP address.
+
+A datagram socket is a type of network socket which provides a connectionless point for sending or receiving data packets.[3] Each packet sent or received on a datagram socket is individually addressed and routed. Order and reliability are not guaranteed with datagram sockets, so multiple packets sent from one machine or process to another may arrive in any order or might not arrive at all.
+
+The sending of UDP broadcasts on a network are always enabled on a datagram socket. In order to receive broadcast packets, a datagram socket should be bound to the wildcard address. Broadcast packets may also be received when a datagram socket is bound to a more specific address.
+
+A stream socket is a type of network socket which provides a connection-oriented, sequenced, and unique flow of data without record boundaries, with well-defined mechanisms for creating and destroying connections and for detecting errors.
+
+Datagram sockets, also known as connectionless sockets, which use User Datagram Protocol (UDP).
+Stream sockets, also known as connection-oriented sockets, which use Transmission Control Protocol (TCP), Stream Control Transmission Protocol (SCTP) or Datagram Congestion Control Protocol (DCCP).
+Raw sockets (or raw IP sockets), typically available in routers and other network equipment. Here the transport layer is bypassed, and the packet headers are made accessible to the application, and there is no port number in the address, just the IP address.
+
+A datagram socket is a type of network socket which provides a connectionless point for sending or receiving data packets.[3] Each packet sent or received on a datagram socket is individually addressed and routed. Order and reliability are not guaranteed with datagram sockets, so multiple packets sent from one machine or process to another may arrive in any order or might not arrive at all.
+
+The sending of UDP broadcasts on a network are always enabled on a datagram socket. In order to receive broadcast packets, a datagram socket should be bound to the wildcard address. Broadcast packets may also be received when a datagram socket is bound to a more specific address.
+
+A stream socket is a type of network socket which provides a connection-oriented, sequenced, and unique flow of data without record boundaries, with well-defined mechanisms for creating and destroying connections and for detecting errors.
+
+Datagram sockets, also known as connectionless sockets, which use User Datagram Protocol (UDP).
+Stream sockets, also known as connection-oriented sockets, which use Transmission Control Protocol (TCP), Stream Control Transmission Protocol (SCTP) or Datagram Congestion Control Protocol (DCCP).
+Raw sockets (or raw IP sockets), typically available in routers and other network equipment. Here the transport layer is bypassed, and the packet headers are made accessible to the application, and there is no port number in the address, just the IP address.
+
+A datagram socket is a type of network socket which provides a connectionless point for sending or receiving data packets.[3] Each packet sent or received on a datagram socket is individually addressed and routed. Order and reliability are not guaranteed with datagram sockets, so multiple packets sent from one machine or process to another may arrive in any order or might not arrive at all.
+
+The sending of UDP broadcasts on a network are always enabled on a datagram socket. In order to receive broadcast packets, a datagram socket should be bound to the wildcard address. Broadcast packets may also be received when a datagram socket is bound to a more specific address.
+
+A stream socket is a type of network socket which provides a connection-oriented, sequenced, and unique flow of data without record boundaries, with well-defined mechanisms for creating and destroying connections and for detecting errors.
+
+Datagram sockets, also known as connectionless sockets, which use User Datagram Protocol (UDP).
+Stream sockets, also known as connection-oriented sockets, which use Transmission Control Protocol (TCP), Stream Control Transmission Protocol (SCTP) or Datagram Congestion Control Protocol (DCCP).
+Raw sockets (or raw IP sockets), typically available in routers and other network equipment. Here the transport layer is bypassed, and the packet headers are made accessible to the application, and there is no port number in the address, just the IP address.
+
+A datagram socket is a type of network socket which provides a connectionless point for sending or receiving data packets.[3] Each packet sent or received on a datagram socket is individually addressed and routed. Order and reliability are not guaranteed with datagram sockets, so multiple packets sent from one machine or process to another may arrive in any order or might not arrive at all.
+
+The sending of UDP broadcasts on a network are always enabled on a datagram socket. In order to receive broadcast packets, a datagram socket should be bound to the wildcard address. Broadcast packets may also be received when a datagram socket is bound to a more specific address.
+
+A stream socket is a type of network socket which provides a connection-oriented, sequenced, and unique flow of data without record boundaries, with well-defined mechanisms for creating and destroying connections and for detecting errors.
+
+Datagram sockets, also known as connectionless sockets, which use User Datagram Protocol (UDP).
+Stream sockets, also known as connection-oriented sockets, which use Transmission Control Protocol (TCP), Stream Control Transmission Protocol (SCTP) or Datagram Congestion Control Protocol (DCCP).
+Raw sockets (or raw IP sockets), typically available in routers and other network equipment. Here the transport layer is bypassed, and the packet headers are made accessible to the application, and there is no port number in the address, just the IP address.
+
+A datagram socket is a type of network socket which provides a connectionless point for sending or receiving data packets.[3] Each packet sent or received on a datagram socket is individually addressed and routed. Order and reliability are not guaranteed with datagram sockets, so multiple packets sent from one machine or process to another may arrive in any order or might not arrive at all.
+
+The sending of UDP broadcasts on a network are always enabled on a datagram socket. In order to receive broadcast packets, a datagram socket should be bound to the wildcard address. Broadcast packets may also be received when a datagram socket is bound to a more specific address.
+
+A stream socket is a type of network socket which provides a connection-oriented, sequenced, and unique flow of data without 
+
+Datagram sockets, also known as connectionless sockets, which use User Datagram Protocol (UDP).
+Stream sockets, also known as connection-oriented sockets, which use Transmission Control Protocol (TCP), Stream Control Transmission Protocol (SCTP) or Datagram Congestion Control Protocol (DCCP).
+Raw sockets (or raw IP sockets), typically available in routers and other network equipment. Here the transport layer is bypassed, and the packet headers are made accessible to the application, and there is no port number in the address, just the IP address.
+
+A datagram socket is a type of network socket which provides a connectionless point for sending or receiving data packets.[3] Each packet sent or received on a datagram socket is individually addressed and routed. Order and reliability are not guaranteed with datagram sockets, so multiple packets sent from one machine or process to another may arrive in any order or might not arrive at all.
+
+The sending of UDP broadcasts on a network are always enabled on a datagram socket. In order to receive broadcast packets, a datagram socket should be bound to the wildcard address. Broadcast packets may also be received when a datagram socket is bound to a more specific address.
+
+A stream socket is a type of network socket which provides a connection-oriented, sequenced, and unique flow of data without record boundaries, with well-defined mechanisms for creating and destroying connections and for detecting errors.
+
+record boundaries, with well-defined mechanisms for creating and destroying connections and for detecting errors.
+
+Datagram sockets, also known as connectionless sockets, which use User Datagram Protocol (UDP).
+Stream sockets, also known as connection-oriented sockets, which use Transmission Control Protocol (TCP), Stream Control Transmission Protocol (SCTP) or Datagram Congestion Control Protocol (DCCP).
+Raw sockets (or raw IP sockets), typically available in routers and other network equipment. Here the transport layer is bypassed, and the packet headers are made accessible to the application, and there is no port number in the address, just the IP address.
+
+A datagram socket is a type of network socket which provides a connectionless point for sending or receiving data packets.[3] Each packet sent or received on a datagram socket is individually addressed and routed. Order and reliability are not guaranteed with datagram sockets, so multiple packets sent from one machine or process to another may arrive in any order or might not arrive at all.
+
+The sending of UDP broadcasts on a network are always enabled on a datagram socket. In order to receive broadcast packets, a datagram socket should be bound to the wildcard address. Broadcast packets may also be received when a datagram socket is bound to a more specific address.
+
+A stream socket is a type of network socket which provides a connection-oriented, sequenced, and unique flow of data without record boundaries, with well-defined mechanisms for creating and destroying connections and for detecting errors.
