@@ -5,7 +5,7 @@ import socket
 import os
 
 udpIP = "127.0.0.1"
-updPort = 4004
+updPort = 4006
 
 updPortSend = 3003
 

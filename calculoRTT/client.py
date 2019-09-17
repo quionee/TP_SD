@@ -11,22 +11,24 @@ udp_port = 3003
 
 # Dados do servidor
 udp_ip_send = "127.0.0.1"
-udp_port_send = 4004
+udp_port_send = 4006
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
 # sock_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-sock.settimeout(0.00001)
+sock.settimeout(0.00000000001)
 
 # Faz o bind local. Associa um socket com um IP e uma Porta.
 sock.bind((udp_ip, udp_port))
 
 sumRTT = 0
-numberOfPackages = 100
+numberOfPackages = 200
 numberOfPackagesLost = 0
 
 messageFile = open("message_file")
 message = messageFile.read()
+
+sumBytes = 0
 
 for i in range(numberOfPackages):
     startTime = float(time.time())
@@ -34,21 +36,23 @@ for i in range(numberOfPackages):
 
     try:
         recv_message = sock.recvfrom(1024)
-    except Exception as e:
-        if e.code == -1007:
-            print("\n\nestourou timeout, perdeu pacote\n\n")
-
-    # except sock.timeout:
-    #     numberOfPackagesLost += 1
-    #     print("\n\nPERDEU PACOTE\n\n")
+        sumBytes += len(recv_message)
+    except Exception:
+        numberOfPackagesLost += 1
 
     endTime = time.time()
-    # time.sleep(5)
     if (recv_message != ""):
-        RTT = endTime - startTime
-        sumRTT += RTT
+        rtt = endTime - startTime
+        sumRTT += rtt
         # print ("Mensagem recebida: ", recv_message)
 
 numberOfPackagesSent = numberOfPackages - numberOfPackagesLost
-RTT = sumRTT / numberOfPackagesSent
-print("\nRTT: ", RTT)
+
+rtt = sumRTT / numberOfPackagesSent
+throughput = (((sumBytes * 8) * 0.001) / rtt)
+lossRate = (numberOfPackagesLost / numberOfPackages) * 100
+
+print("\nRTT: ", rtt)
+print("\nVazão: ", throughput)
+print("\nQuantidade de pacotes perdidos: ", numberOfPackagesLost)
+print("\nTaxa de perda: ", lossRate, "%")
