@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# cálculo do RTT e da Taxa de Perda
+# ----- CÁLCULO DO RTT -----
 
 import socket
 import os
@@ -12,82 +12,76 @@ udp_ip = "192.168.0.131"
 udp_port = 3003
 
 # Dados do servidor
-udp_ip_send = "192.168.0.116"
+udp_ip_send = "192.168.0.120"
 udp_port_send = 4006
 
-sockUDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Cria socket
 
-sockUDP.settimeout(0.1)
+sock.settimeout(0.1) # Determina timeout
 
-# Faz o bind local. Associa um socket com um IP e uma Porta.
-sockUDP.bind((udp_ip, udp_port))
+sock.bind((udp_ip, udp_port)) # Associa um socket com um IP e uma porta
 
-sumRTT = 0
-numberOfPackages = 1000
-numberOfPackagesLost = 0
-
-message = "a mensagem aqui"
+message = "A computacao na tomada de decisoes"
 
 rtt = 0
 
-startTime = float(time.time())
+startTime = time.time() # Tempo inicial
 
 try:
-    sockUDP.sendto(message.encode(), (udp_ip_send, udp_port_send))
+    sock.sendto(message.encode(), (udp_ip_send, udp_port_send)) # Envia mensagem
 except Exception:
     print(" ----- timeout de envio ----- ")
 
 messageReceived = ""
 
 try:
-    messageReceived = sockUDP.recvfrom(1024)
+    messageReceived = sock.recvfrom(1024) # Recebe mensagem
 except Exception:
     print(" ----- timeout de recebimento ----- ")
 
-endTime = time.time()
+endTime = time.time() # Tempo final
 
 if (messageReceived != ""):
     rtt = endTime - startTime
-    # print ("Mensagem recebida: ", messageReceived)
+    # print("Mensagem recebida: ", messageReceived)
 
-# ----- CÁLCULO DO RTT MÉDIO E TAXA DE PERDA
 
-sockUDP.settimeout(0.01)
+# ----- CÁLCULO DO RTT MÉDIO E TAXA DE PERDA -----
 
+sock.settimeout(0.1) # Determina timeout
+
+sumRTT = 0
+numberOfPackages = 1000
+numberOfPackagesLost = 0
 sumBytes = 0
-startTime = float(time.time())
 
 for i in range(numberOfPackages):
-
+    startTime = time.time() # Tempo inicial
     try:
-        sockUDP.sendto(message.encode(), (udp_ip_send, udp_port_send))
+        sock.sendto(message.encode(), (udp_ip_send, udp_port_send)) # Envia pacote
     except Exception:
         print(" ----- timeout de envio ----- ")
 
     messageReceived = ""
 
     try:
-        messageReceived = sockUDP.recvfrom(1024)
+        messageReceived = sock.recvfrom(1024) # Recebe mensagem
     except Exception:
-        numberOfPackagesLost += 1
+        numberOfPackagesLost += 1 # Incrementa números de pacotes perdidos caso haja perda
         print(" ----- timeout de recebimento ----- ")
 
-    endTime = time.time()
+    endTime = time.time() # Tempo final
 
     if (messageReceived != ""):
-        sumRTT = endTime - startTime
-        # print ("Mensagem recebida: ", messageReceived)
+        sumRTT += endTime - startTime
+        # print("Mensagem recebida: ", messageReceived)
 
 numberOfPackagesSent = numberOfPackages - numberOfPackagesLost
 
-meanRTT = sumRTT / numberOfPackagesSent
-lossRate = (numberOfPackagesLost / numberOfPackages) * 100
+meanRTT = sumRTT / numberOfPackagesSent # Cálcula o RTT médio
+lossRate = (numberOfPackagesLost / numberOfPackages) * 100 # Calcula a taxa de perda (porcentagem)
 
 print("\nRTT: ", rtt, "s")
 print("\nRTT médio: ", meanRTT, "s")
 print("\nTaxa de perda: ", lossRate, "%")
 print("\nQuantidade de pacotes perdidos: ", numberOfPackagesLost)
-
-# remover vazão
-# string de 10 caracteres por exemplo
-# assim está pronto rtt e taxa de perda
