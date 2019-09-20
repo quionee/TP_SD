@@ -8,11 +8,11 @@ import os
 import time
 
 # Dados do cliente
-udp_ip = "192.168.0.131"
+udp_ip = "192.168.103.5"
 udp_port = 3003
 
 # Dados do servidor
-udp_ip_send = "192.168.0.120"
+udp_ip_send = "192.168.103.4"
 udp_port_send = 4006
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Cria socket
@@ -23,27 +23,27 @@ sock.bind((udp_ip, udp_port)) # Associa um socket com um IP e uma porta
 
 message = "A computacao na tomada de decisoes"
 
-rtt = 0
+# rtt = 0
 
-startTime = time.time() # Tempo inicial
+# startTime = time.time() # Tempo inicial
 
-try:
-    sock.sendto(message.encode(), (udp_ip_send, udp_port_send)) # Envia mensagem
-except Exception:
-    print(" ----- timeout de envio ----- ")
+# try:
+#     sock.sendto(message.encode(), (udp_ip_send, udp_port_send)) # Envia mensagem
+# except Exception:
+#     print(" ----- timeout de envio ----- ")
 
-messageReceived = ""
+# messageReceived = ""
 
-try:
-    messageReceived = sock.recvfrom(1024) # Recebe mensagem
-except Exception:
-    print(" ----- timeout de recebimento ----- ")
+# try:
+#     messageReceived = sock.recvfrom(1024) # Recebe mensagem
+# except Exception:
+#     print(" ----- timeout de recebimento ----- ")
 
-endTime = time.time() # Tempo final
+# endTime = time.time() # Tempo final
 
-if (messageReceived != ""):
-    rtt = endTime - startTime
-    # print("Mensagem recebida: ", messageReceived)
+# if (messageReceived != ""):
+#     rtt = endTime - startTime
+#     # print("Mensagem recebida: ", messageReceived)
 
 
 # ----- CÁLCULO DO RTT MÉDIO E TAXA DE PERDA -----
@@ -51,7 +51,7 @@ if (messageReceived != ""):
 sock.settimeout(0.1) # Determina timeout
 
 sumRTT = 0
-numberOfPackages = 1000
+numberOfPackages = 30
 numberOfPackagesLost = 0
 sumBytes = 0
 
@@ -76,12 +76,16 @@ for i in range(numberOfPackages):
         sumRTT += endTime - startTime
         # print("Mensagem recebida: ", messageReceived)
 
+    time.sleep(0.5)
+
 numberOfPackagesSent = numberOfPackages - numberOfPackagesLost
 
 meanRTT = sumRTT / numberOfPackagesSent # Cálcula o RTT médio
 lossRate = (numberOfPackagesLost / numberOfPackages) * 100 # Calcula a taxa de perda (porcentagem)
 
-print("\nRTT: ", rtt, "s")
+sock.close()
+
+# print("\nRTT: ", rtt, "s")
 print("\nRTT médio: ", meanRTT, "s")
 print("\nTaxa de perda: ", lossRate, "%")
 print("\nQuantidade de pacotes perdidos: ", numberOfPackagesLost)
