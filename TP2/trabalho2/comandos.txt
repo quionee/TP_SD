@@ -1,0 +1,32 @@
+-- Rodar servidor loadbalancer:
+	docker run -it -p 88:80 ivancarvalho/serverhost:lastest
+	cd etc/nginx
+	nano nginx.conf
+	-> Setar o IP das maquinas ou o Critério de load balancer
+
+-- Critérios para load balancer
+-- Rodar "service nginx restart" após alterar o "nginx.conf"
+	upstream backend {
+			round-robin;
+	        server 192.168.0.47:8081;
+            server 192.168.0.46:8081;
+    }
+	round-robin; # Default; Distribuicao sequencial
+	least_conn; # Redireciona para a maquina com menos requisicoes
+	ip_hash; # Mapeia o IP do Cliente a um IP do servidor
+	
+	server 192.168.0.47:80 weight=2; # weight: util para máquinas com mais recursos
+
+-- Comandos úteis para o nginx:
+	service nginx status
+	service nginx start
+	service nginx restart
+
+-- Maquinas valida cpf
+docker run -it -p 8088:8081	ivancarvalho/validacpf:lastest
+
+-- Rodar comando
+script.py
+curl 192.168.0.HOST_IP:88
+curl 192.168.0.HOST_IP:88/validar/123
+curl 192.168.0.HOST_IP:88/identificar
