@@ -8,11 +8,11 @@ import os
 import time
 
 # Dados do cliente
-udp_ip = "192.168.103.5"
+udp_ip = ""
 udp_port = 3003
 
 # Dados do servidor
-udp_ip_send = "192.168.103.4"
+udp_ip_send = ""
 udp_port_send = 4006
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Cria socket

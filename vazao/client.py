@@ -4,7 +4,7 @@
 import socket
 import time
 
-TCP_IP = '192.168.103.4'
+TCP_IP = ''
 TCP_PORT = 4004
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Criando socket
